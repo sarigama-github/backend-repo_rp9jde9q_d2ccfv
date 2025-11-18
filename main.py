@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+from typing import List, Tuple
 
 from database import db, create_document, get_documents
 from schemas import LearningPath, PathNode, Progress
@@ -18,30 +18,8 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def read_root():
-    return {"message": "Story Learning Game Backend Running"}
-
-
-# Bootstrap sample content (optionally reset existing)
-@app.post("/bootstrap", tags=["admin"])
-def bootstrap_content(force: bool = Query(False, description="If true, clears existing content and reseeds")):
-    if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
-
-    lp_coll = db["learningpath"]
-    prog_coll = db["progress"]
-
-    existing = list(lp_coll.find({}).limit(1))
-    if existing and not force:
-        return {"status": "ok", "message": "Already bootstrapped"}
-
-    # If force, clear existing
-    if force:
-        lp_coll.delete_many({})
-        prog_coll.delete_many({})
-
-    # Build a much larger set of goals
+def _build_default_learning_path() -> Tuple[LearningPath, int]:
+    """Construct the default learning path with a rich set of nodes (> 3)."""
     big_nodes: List[PathNode] = []
     entries = [
         ("Arrival", "Meet your guide and learn the rules", "Welcome adventurer! This realm turns lessons into quests.", "easy", "lesson"),
@@ -73,7 +51,6 @@ def bootstrap_content(force: bool = Query(False, description="If true, clears ex
         ("Observability Overlook", "Read the stars", "Trace, log, and watch the skies.", "medium", "lesson"),
         ("Final Forge", "Craft a relic", "Temper your knowledge into a finished artifact.", "hard", "project"),
     ]
-
     for i, (title, summary, content, difficulty, typ) in enumerate(entries):
         big_nodes.append(PathNode(
             id=f"n{i+1}",
@@ -91,9 +68,54 @@ def bootstrap_content(force: bool = Query(False, description="If true, clears ex
         theme="gaming",
         nodes=big_nodes,
     )
+    return path, len(big_nodes)
 
+
+@app.on_event("startup")
+def ensure_seed_on_startup():
+    """Automatically seed the database with a rich default path if empty.
+    This guarantees more than 3 goals by default on first run.
+    """
+    try:
+        if db is None:
+            return
+        lp_coll = db["learningpath"]
+        # Only seed when there is no learning path yet
+        if lp_coll.count_documents({}) == 0:
+            path, count = _build_default_learning_path()
+            create_document("learningpath", path)
+    except Exception:
+        # Avoid crashing app on startup; explicit bootstrap can still be used
+        pass
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Story Learning Game Backend Running"}
+
+
+# Bootstrap sample content (optionally reset existing)
+@app.post("/bootstrap", tags=["admin"])
+def bootstrap_content(force: bool = Query(False, description="If true, clears existing content and reseeds")):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
+    lp_coll = db["learningpath"]
+    prog_coll = db["progress"]
+
+    existing = list(lp_coll.find({}).limit(1))
+    if existing and not force:
+        return {"status": "ok", "message": "Already bootstrapped"}
+
+    # If force, clear existing
+    if force:
+        lp_coll.delete_many({})
+        prog_coll.delete_many({})
+
+    # Build and insert default rich path
+    path, count = _build_default_learning_path()
     create_document("learningpath", path)
-    return {"status": "ok", "message": f"Bootstrapped with {len(big_nodes)} goals", "count": len(big_nodes)}
+    return {"status": "ok", "message": f"Bootstrapped with {count} goals", "count": count}
 
 
 @app.get("/paths", response_model=List[LearningPath])
