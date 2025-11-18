@@ -1,8 +1,8 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
 from database import db, create_document, get_documents
 from schemas import LearningPath, PathNode, Progress
@@ -23,52 +23,77 @@ def read_root():
     return {"message": "Story Learning Game Backend Running"}
 
 
-# Bootstrap a default path if DB empty
+# Bootstrap sample content (optionally reset existing)
 @app.post("/bootstrap", tags=["admin"])
-def bootstrap_content():
+def bootstrap_content(force: bool = Query(False, description="If true, clears existing content and reseeds")):
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
 
-    existing = list(db["learningpath"].find({}).limit(1))
-    if existing:
+    lp_coll = db["learningpath"]
+    prog_coll = db["progress"]
+
+    existing = list(lp_coll.find({}).limit(1))
+    if existing and not force:
         return {"status": "ok", "message": "Already bootstrapped"}
 
-    nodes = [
-        PathNode(
-            id="n1",
-            title="Arrival",
-            summary="Meet your guide and learn the rules",
-            content="Welcome adventurer! This realm turns lessons into quests.",
-            order=0,
-            difficulty="easy",
-        ),
-        PathNode(
-            id="n2",
-            title="Fork in the Road",
-            summary="Choose your learning style",
-            content="Pick examples, theory, or challenges to proceed.",
-            order=1,
-            difficulty="easy",
-        ),
-        PathNode(
-            id="n3",
-            title="The Puzzle Gate",
-            summary="Apply what you learned",
-            content="Solve a small puzzle to open the gate.",
-            order=2,
-            difficulty="medium",
-        ),
+    # If force, clear existing
+    if force:
+        lp_coll.delete_many({})
+        prog_coll.delete_many({})
+
+    # Build a much larger set of goals
+    big_nodes: List[PathNode] = []
+    entries = [
+        ("Arrival", "Meet your guide and learn the rules", "Welcome adventurer! This realm turns lessons into quests.", "easy", "lesson"),
+        ("Fork in the Road", "Choose your learning style", "Pick examples, theory, or challenges to proceed.", "easy", "lesson"),
+        ("First Spark", "Your first tiny win", "Light the campfire by following the hints.", "easy", "video"),
+        ("Puzzle Gate", "Solve a small puzzle", "Crack the runes to open the ancient gate.", "medium", "quiz"),
+        ("Syntax Springs", "Read the signs", "Explore gentle syntax streams with playful examples.", "easy", "lesson"),
+        ("Looping Lagoon", "Go around with style", "Sail in circles to collect pearls while looping.", "medium", "video"),
+        ("Branching Bridge", "Choose wisely", "Cross a bridge that splits based on your decisions.", "medium", "lesson"),
+        ("Mapmaker's Post", "Draw your path", "Sketch a small map using coordinates and curves.", "medium", "project"),
+        ("Function Falls", "Reusable magic", "Bottle a waterfall: turn flowing steps into a spell.", "medium", "lesson"),
+        ("Testy Tunnels", "Check your work", "Shine a lantern on bugs by writing small tests.", "medium", "quiz"),
+        ("Object Oasis", "Bundle and carry", "Pack related ideas into neat containers.", "medium", "video"),
+        ("Module Market", "Trade and share", "Browse a bazaar of reusable pieces.", "easy", "lesson"),
+        ("Async Airships", "Do many things at once", "Launch parallel airships to deliver messages.", "hard", "video"),
+        ("Error Escarpment", "Trip safely", "Practice falling and recovering with grace.", "medium", "lesson"),
+        ("Data Dunes", "Shape the sand", "Filter, map, and reduce dunes into sculptures.", "medium", "quiz"),
+        ("Promise Peaks", "Trust the climb", "Climb with ropes that resolve at the summit.", "medium", "lesson"),
+        ("HTTP Harbor", "Talk to distant lands", "Send messages in bottles and read the replies.", "medium", "lesson"),
+        ("JSON Jungle", "Tame the trees", "Navigate tangled data vines safely.", "easy", "quiz"),
+        ("SVG Savanna", "Draw with math", "Paint graceful paths and shapes on a living canvas.", "medium", "project"),
+        ("State Summit", "Remember and react", "Carry state up the mountain and share views.", "hard", "lesson"),
+        ("Hook Highlands", "Reusable reactions", "Craft tiny hooks to catch behavior.", "medium", "video"),
+        ("Design Desert", "Balance and contrast", "Find oases of whitespace and rhythm.", "medium", "lesson"),
+        ("Accessibility Arcade", "Everyone plays", "Win tickets by making controls friendly.", "medium", "quiz"),
+        ("Performance Plains", "Ride fast", "Tune your mount and pack only what you need.", "hard", "lesson"),
+        ("Security Stronghold", "Guard the gate", "Keep secrets safe and verify travelers.", "hard", "lesson"),
+        ("Deployment Dock", "Set sail", "Launch ships with careful checklists.", "medium", "video"),
+        ("Observability Overlook", "Read the stars", "Trace, log, and watch the skies.", "medium", "lesson"),
+        ("Final Forge", "Craft a relic", "Temper your knowledge into a finished artifact.", "hard", "project"),
     ]
+
+    for i, (title, summary, content, difficulty, typ) in enumerate(entries):
+        big_nodes.append(PathNode(
+            id=f"n{i+1}",
+            title=title,
+            summary=summary,
+            content=content,
+            order=i,
+            difficulty=difficulty,
+            type=typ,
+        ))
 
     path = LearningPath(
         title="Hero's Journey into Coding",
         description="An interactive story where each stop teaches a concept.",
         theme="gaming",
-        nodes=nodes,
+        nodes=big_nodes,
     )
 
     create_document("learningpath", path)
-    return {"status": "ok", "message": "Bootstrapped default content"}
+    return {"status": "ok", "message": f"Bootstrapped with {len(big_nodes)} goals", "count": len(big_nodes)}
 
 
 @app.get("/paths", response_model=List[LearningPath])

@@ -15,6 +15,7 @@ class PathNode(BaseModel):
     content: str = Field(..., description="Story content / lesson text")
     order: int = Field(..., ge=0, description="Order in the path")
     difficulty: Optional[str] = Field(None, description="Easy/Medium/Hard")
+    type: Optional[str] = Field(None, description="lesson | video | quiz | project")
 
 
 class LearningPath(BaseModel):
