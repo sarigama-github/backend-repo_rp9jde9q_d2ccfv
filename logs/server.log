@@ -1,15 +1,27 @@
 INFO:     Will watch for changes in these directories: ['/home/workspace']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [229] using StatReload
-INFO:     Started server process [231]
+INFO:     Started reloader process [278] using StatReload
+INFO:     Started server process [280]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     172.20.0.1:50708 - "HEAD / HTTP/1.1" 405 Method Not Allowed
-INFO:     172.20.0.1:50710 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50710 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50710 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50710 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50720 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50730 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50720 - "GET /paths HTTP/1.1" 200 OK
-INFO:     172.20.0.1:50730 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53840 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+INFO:     172.20.0.1:53404 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53422 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53426 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53426 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53404 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53426 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:53426 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48354 - "OPTIONS /progress/toggle HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48354 - "POST /progress/toggle HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49504 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49504 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49504 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49520 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49504 - "GET /paths HTTP/1.1" 200 OK
+INFO:     172.20.0.1:49536 - "GET /progress/guest/Hero%27s%20Journey%20into%20Coding HTTP/1.1" 200 OK
